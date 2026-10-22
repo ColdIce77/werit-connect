@@ -21,6 +21,8 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-secure-store',
+    "expo-status-bar",
+    "expo-sharing",
     'expo-localization',
     'expo-web-browser',
     'expo-notifications',
