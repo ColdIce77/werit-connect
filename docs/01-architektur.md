@@ -1,6 +1,6 @@
 # WERIT Connect – Architektur (Phase 1)
 
-Status: Entwurf v0.2 · Stand 20.10.2026 (Antworten zu den offenen Punkten eingearbeitet)
+Status: Entwurf v0.3 · Stand 20.10.2026 (Entscheidungen zu Urlaub, Plattformen und KI-Anbieter eingearbeitet)
 Folgedokumente: `02-datenmodell.md`, `03-navigation.md`, danach Screens, Backend, Deployment, Intune, Roadmap.
 
 ---
@@ -13,7 +13,7 @@ WERIT Connect ist die mobile Mitarbeiter-App der WERIT Kunststoffwerke für iOS 
 |---|---|
 | Produktionsmitarbeiter | News, Sicherheitsunterweisungen, Notfallkontakte, Urlaub, IT-Störung melden |
 | Kaufmännische Mitarbeiter | Verzeichnis, Dokumente, Urlaub, Tickets, KI-Assistent |
-| Führungskräfte | Freigaben (Urlaub, IT), Team-Überblick, Ankündigungen |
+| Führungskräfte | Freigaben, Ankündigungen, Team-Überblick |
 | Außendienst | Offline-Verzeichnis, Dokumente, Push, Notfallkontakte |
 
 Nichtfunktionale Ziele: einfache Bedienung mit großen Touchflächen, deutschsprachige UI, Fluent Design in dunklem Blau auf hellem Layout, Offline-Fähigkeit für sicherheitsrelevante Inhalte, Betrieb unter Intune, Wartbarkeit und Erweiterbarkeit.
@@ -90,7 +90,7 @@ werit-connect/
 │       │   ├── documents/
 │       │   ├── safety/            Sicherheitsunterweisungen
 │       │   ├── emergency/         Notfallkontakte
-│       │   ├── leave/             Urlaubsanträge
+│       │   ├── links/             Externe Links (VEDA.net)
 │       │   ├── tickets/
 │       │   ├── approvals/
 │       │   └── notifications/
@@ -116,7 +116,7 @@ werit-connect/
 │       │   ├── directory/
 │       │   ├── news/
 │       │   ├── tasks/
-│       │   ├── leave/
+│       │   ├── settings/
 │       │   ├── tickets/
 │       │   ├── approvals/
 │       │   ├── documents/
@@ -168,7 +168,7 @@ Umsetzung: Berechtigungen als benannte Permissions (`leave.approve`, `announceme
 
 | Modul | Inhalt | Quelle der Wahrheit | Offline |
 |---|---|---|---|
-| Dashboard | News, Ankündigungen, Aufgaben, Geburtstage, neue Mitarbeiter, offene Urlaubsanträge, offene Tickets | Aggregations-Endpunkt im Backend | zuletzt geladener Stand, schreibgeschützt |
+| Dashboard | News, Ankündigungen, Aufgaben, Geburtstage, neue Mitarbeiter, offene Tickets | Aggregations-Endpunkt im Backend | zuletzt geladener Stand, schreibgeschützt |
 | Verzeichnis | Suche nach Kollegen, Kontaktdaten | Entra ID (Microsoft Graph), im Backend gespiegelt | **ja** |
 | KI-Assistent | Fragen wie „Wer ist Ansprechpartner im Einkauf?“, „Wie beantrage ich Urlaub?“, „Wo finde ich die Reisekostenrichtlinie?“, „Wie melde ich eine IT-Störung?“ | RAG-Service | nein |
 | Dokumente | Richtlinien, Formulare | SharePoint | **zuletzt gelesene** |
@@ -196,7 +196,7 @@ Ablauf:
 3. **Generation**: LLM antwortet nur auf Basis der gefundenen Passagen, mit Quellenangaben, auf Deutsch. Ohne Treffer antwortet der Assistent, dass er es nicht weiß, statt zu raten.
 4. **Protokoll**: Frage, Quellen und Feedback (Daumen) für Qualitätssicherung, datenschutzkonform und mit Löschfrist.
 
-Offen: Auswahl des LLM-Anbieters (Azure OpenAI in EU-Region oder Copilot-basierte Variante, siehe 13) und Datenschutzfreigabe.
+LLM-Anbieter: Azure OpenAI in einer EU-Region. Offen: Datenschutzfreigabe.
 
 ## 8. Offline-Konzept
 
@@ -210,15 +210,15 @@ Offen: Auswahl des LLM-Anbieters (Azure OpenAI in EU-Region oder Copilot-basiert
 Grundsätze:
 
 - Jeder Offline-Datensatz trägt `fetched_at` und `server_version`. Die UI zeigt „Stand: …“.
-- Schreibende Aktionen offline (Lesebestätigung, später Urlaubsantrag, Ticket) laufen über eine **Outbox-Queue** mit Idempotenz-Schlüssel, Wiederholung mit Backoff und Konfliktregel „Server gewinnt, Nutzer wird informiert“.
+- Schreibende Aktionen offline (Lesebestätigung, später Ticket) laufen über eine **Outbox-Queue** mit Idempotenz-Schlüssel, Wiederholung mit Backoff und Konfliktregel „Server gewinnt, Nutzer wird informiert“.
 - Lokale Daten sind verschlüsselt (SQLCipher bzw. Dateiverschlüsselung, Schlüssel im Secure Store).
 - Bei Abmeldung, Rollenentzug oder Intune-Wipe werden alle lokalen Daten gelöscht.
 
 ## 9. Push-Nachrichten
 
-Kategorien: Unternehmensnews, IT-Störungen, Sicherheitswarnungen, Freigaben, Urlaubsanträge.
+Kategorien: Unternehmensnews, IT-Störungen, Sicherheitswarnungen, Freigaben.
 
-Hinweis: Urlaub läuft nur über VEDA.net, die App hat keine Urlaubsdaten. Die Kategorie „Urlaubsanträge“ bleibt vorerst Platzhalter (siehe 13). Push-Texte werden in der Sprache des Nutzers versendet.
+Urlaub läuft nur über VEDA.net und löst keine Push-Meldungen aus. Push-Texte werden in der Sprache des Nutzers versendet.
 
 - Gerätetoken wird nach Login am Backend registriert (`device`-Tabelle, pro Nutzer mehrere Geräte).
 - Backend versendet gezielt nach Nutzer, Rolle, Standort oder Bereich.
@@ -242,7 +242,7 @@ Hinweis: Urlaub läuft nur über VEDA.net, die App hat keine Urlaubsdaten. Die K
 - **Barrierefreiheit:** Touch-Ziele mindestens 48 dp, Kontraste nach WCAG AA, Dynamic Type, Screenreader-Labels.
 - **Responsive:** Smartphone mit Bottom-Tabs, Tablet mit Seitenleiste und Zwei-Spalten-Ansicht (Master/Detail), Umschaltung über Breakpoints.
 - **Mehrsprachigkeit:** Deutsch (Standard), Englisch, Französisch, weitere Sprachen vorgesehen. Alle Texte als Schlüssel in Sprachdateien (i18next), Fallback auf Deutsch, Sprache folgt der Geräteeinstellung und ist in der App umschaltbar. Datums-, Zahlen- und Zeitformate lokalisiert, Layout für längere Texte und spätere Rechts-nach-links-Sprachen ausgelegt. Inhalte (News, Dokumente, Unterweisungen) tragen ein Sprachkennzeichen. Der KI-Assistent antwortet in der Sprache der Frage.
-- **Plattformen:** Unterstützt werden die aktuellen Hauptversionen von iOS und Android. Konkrete Mindestversionen werden zum Rollout festgelegt und über Intune-Compliance-Richtlinien durchgesetzt.
+- **Plattformen:** Unterstützt werden die aktuelle und die jeweils vorherige Hauptversion von iOS und Android. Die konkreten Versionsnummern werden zum Rollout festgelegt und über Intune-Compliance-Richtlinien durchgesetzt.
 - **Hosting (Azure):** Zielbild: Backend als Container (Azure Container Apps oder App Service), Azure Database for PostgreSQL Flexible Server mit pgvector, Azure Key Vault für Geheimnisse, Azure Front Door oder API Management vor der API, Application Insights für Logs und Metriken, Region in der EU. Details im Deployment-Dokument.
 - **Beobachtbarkeit:** strukturierte Logs, Health-Endpunkte, Crash-Reporting (Datenschutz prüfen), Metriken.
 - **Qualität:** ESLint, Prettier, Jest, React Native Testing Library, API-Tests mit Supertest, E2E mit Maestro oder Detox, Typen zwischen App und API über ein gemeinsames Schema (OpenAPI).
@@ -261,6 +261,8 @@ Hinweis: Urlaub läuft nur über VEDA.net, die App hat keine Urlaubsdaten. Die K
 | 7 | Hosting auf Azure | beschlossen |
 | 8 | VEDA nur als Link, keine Integration; Verzeichnis und Anmeldung über Entra ID | beschlossen |
 | 9 | Mehrsprachig ab Start (de, en, fr, erweiterbar) | beschlossen |
+| 10 | LLM über Azure OpenAI (EU-Region) hinter dem generischen Provider-Interface | beschlossen |
+| 11 | Plattformen: aktuelle und vorherige Hauptversion von iOS und Android | beschlossen |
 
 ## 13. Entscheidungen und offene Punkte
 
@@ -272,20 +274,20 @@ Hinweis: Urlaub läuft nur über VEDA.net, die App hat keine Urlaubsdaten. Die K
 | Verzeichnis und Anmeldung | Entra ID (Microsoft Graph, SSO). VEDA wird nicht angebunden. |
 | Urlaub | Nur ein Link zu VEDA.net, keine Antragsstrecke in der App |
 | Tickets (NinjaOne) | Platzhalter, wird später definiert |
-| Plattformen | Aktuelle Hauptversionen von iOS und Android |
+| Plattformen | Aktuelle und vorherige Hauptversion von iOS und Android |
 | Sprachen | Deutsch, Englisch, Französisch, weitere erweiterbar |
 | Hosting | Azure |
+| KI-Anbieter | Azure OpenAI (EU-Region), kein Copilot |
+| Dashboard und Push zu Urlaub | Entfallen (Urlaub nur als Link zu VEDA.net) |
 
 ### Offen
 
-1. **KI-Anbieter:** Kann Copilot verwendet werden? Empfehlung: Azure OpenAI hinter dem generischen Provider-Interface, Copilot Studio als Alternative (Lizenzlage klären).
-2. **Intune-MAM-SDK mit Expo:** Machbarkeitstest (Spike) in Phase 1.
-3. **Dashboard und Push zu Urlaub:** „Offene Urlaubsanträge“ (Dashboard) und die Push-Kategorie „Urlaubsanträge“ haben ohne VEDA-Anbindung keine Datenquelle. Entfernen oder als Platzhalter behalten?
-4. **Mindestversionen:** Nur die aktuelle Hauptversion oder zusätzlich die vorherige?
-5. **NinjaOne und Freigaben:** Schnittstellen, Mandantenmodell und Datenquellen werden später definiert (Platzhalter im Datenmodell).
+1. **Intune-MAM-SDK mit Expo:** Machbarkeitstest (Spike) in Phase 1.
+2. **NinjaOne und Freigaben:** Schnittstellen, Mandantenmodell und Datenquellen werden später definiert (Platzhalter im Datenmodell).
+3. **Datenschutz:** Freigabe für den KI-Assistenten (Azure OpenAI) sowie Abstimmung mit Datenschutzbeauftragtem und Betriebsrat.
+4. **VEDA-Link:** Genaue URL von VEDA.net eintragen (derzeit Platzhalter in `app_settings`).
 
 ## 14. Nächste Schritte
 
-1. Offene Punkte 1, 3 und 4 klären.
-2. Phase 2: Datenmodell (`docs/02-datenmodell.md`) mit ER-Diagramm und SQL-Migrationen.
-3. Phase 3: Navigation (`docs/03-navigation.md`).
+1. Phase 2: Datenmodell (`docs/02-datenmodell.md`, `backend/migrations/001_initial_schema.sql`).
+2. Phase 3: Navigation (`docs/03-navigation.md`).
