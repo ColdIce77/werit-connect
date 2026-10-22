@@ -35,7 +35,7 @@ Root (Native Stack)
    │                  ├─ TicketList · TicketDetail
    │                  ├─ ApprovalList · ApprovalDetail        (approval.decide)
    │                  ├─ Settings · LanguageSettings · NotificationSettings · About
-   │                  └─ AdminHome                            (admin.manage)
+   │                  └─ AdminHome · PublishPost · PublishSecurityAlert   (admin.manage; Meldung: post.publish, Warnung: security_alert.publish)
    ├─ Emergency        Modal, von überall über die Kopfzeile
    ├─ TicketCreate     Modal, aus Tickets und Dashboard
    └─ SecurityAlert    Vollbild-Modal, nicht wegwischbar
