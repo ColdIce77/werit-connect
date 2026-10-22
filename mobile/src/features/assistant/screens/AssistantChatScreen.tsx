@@ -235,11 +235,13 @@ export function AssistantChatScreen({ navigation, route }: AssistantScreenProps<
           </View>
         )}
         ListFooterComponent={
-          ask.isPending ? (
-            <Text style={styles.thinking} accessibilityLiveRegion="polite">
-              {t('assistant.thinking')}
-            </Text>
-          ) : null
+          <>
+            {ask.isPending ? (
+              <Text style={styles.thinking} accessibilityLiveRegion="polite">
+                {t('assistant.thinking')}
+              </Text>
+            ) : null}
+          </>
         }
       />
 

@@ -1,7 +1,8 @@
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import type { MoreScreenProps } from '../../../app/navigation/types';
+import type { MoreScreenProps, RootStackParamList } from '../../../app/navigation/types';
 import { ApiError } from '../../../shared/api/client';
 import { AppButton } from '../../../shared/components/AppButton';
 import { ListRow } from '../../../shared/components/ListRow';
@@ -16,6 +17,7 @@ import { useTickets } from '../api';
 
 export function TicketListScreen({ navigation }: MoreScreenProps<'TicketList'>) {
   const { t, i18n } = useTranslation();
+  const root = useNavigation<NavigationProp<RootStackParamList>>();
   const { data, error, isPending, isRefetching, refetch } = useTickets();
   const pending = useSyncStore((state) => state.pending);
 
@@ -25,7 +27,7 @@ export function TicketListScreen({ navigation }: MoreScreenProps<'TicketList'>) 
         <AppButton
           title={t('tickets.report')}
           icon="add-circle-outline"
-          onPress={() => navigation.navigate('TicketCreate')}
+          onPress={() => root.navigate('TicketCreate')}
         />
         {pending > 0 ? <StatusBadge label={t('tickets.waitingToSend', { count: pending })} tone="warning" /> : null}
       </View>

@@ -46,7 +46,7 @@ export function TicketCreateScreen({ navigation }: RootScreenProps<'TicketCreate
     createTicket.mutate(
       {
         title: title.trim(),
-        description: description.trim() || null,
+        description: description.trim(),
         category,
         priority: urgent ? 'high' : 'normal',
       },

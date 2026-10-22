@@ -7,12 +7,10 @@ import type { ExpoConfig } from 'expo/config';
 const config: ExpoConfig = {
   name: 'WERIT Connect',
   slug: 'werit-connect',
-  owner: 'icebreaker',
   version: '0.1.0',
   scheme: 'weritconnect',
   orientation: 'default',
   userInterfaceStyle: 'light',
-  newArchEnabled: true,
   ios: {
     bundleIdentifier: 'eu.werit.connect',
     supportsTablet: true,
@@ -33,7 +31,6 @@ const config: ExpoConfig = {
     entraTenantId: process.env.EXPO_PUBLIC_ENTRA_TENANT_ID ?? '',
     entraClientId: process.env.EXPO_PUBLIC_ENTRA_CLIENT_ID ?? '',
     apiScope: process.env.EXPO_PUBLIC_API_SCOPE ?? '',
-    eas: { projectId: 'f22147ab-8b92-4dc7-914c-54716acfd699' },
   },
 };
 

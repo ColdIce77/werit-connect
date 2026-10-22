@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import type { HomeScreenProps } from '../../../app/navigation/types';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import type { HomeScreenProps, RootStackParamList } from '../../../app/navigation/types';
 import { ApiError } from '../../../shared/api/client';
 import { ErrorState, LoadingState } from '../../../shared/components/StateViews';
 import { Screen } from '../../../shared/components/Screen';
@@ -22,6 +23,7 @@ import {
 
 export function DashboardScreen({ navigation }: HomeScreenProps<'Dashboard'>) {
   const { t, i18n } = useTranslation();
+  const root = useNavigation<NavigationProp<RootStackParamList>>();
   const { isTablet } = useLayout();
   const displayName = useAuthStore((state) => state.user?.displayName);
   const { data, error, isPending, isRefetching, isError, refetch, dataUpdatedAt } = useDashboard();
@@ -56,7 +58,7 @@ export function DashboardScreen({ navigation }: HomeScreenProps<'Dashboard'>) {
           navigation.navigate('MoreTab', { screen: 'TicketDetail', params: { ticketId } })
         }
         onShowAll={openTickets}
-        onReport={() => navigation.navigate('TicketCreate')}
+        onReport={() => root.navigate('TicketCreate')}
       />
       <BirthdaysSection items={data.birthdays} />
       <NewHiresSection

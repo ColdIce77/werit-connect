@@ -45,7 +45,7 @@ export function AssistantHistoryScreen({ navigation }: AssistantScreenProps<'Ass
           <EmptyState title={t('assistant.historyEmpty')} message={t('assistant.retention')} icon="time-outline" />
         }
         ListFooterComponent={
-          data.length > 0 ? <ListRow title={t('assistant.retention')} /> : null
+          <>{data.length > 0 ? <ListRow title={t('assistant.retention')} /> : null}</>
         }
         renderItem={({ item }) => (
           <ListRow
